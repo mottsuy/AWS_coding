@@ -2,9 +2,19 @@ const port = 8080;
 const express = require("express");
 const app = express();
 
+
+var basicAuth = require('basic-auth-connect');
+var adminApp  = express.Router();
+
+adminApp.use(basicAuth('amazon', 'candidate'));
+
 app.get("/", (req,res) => {
     res.send("AMAZON")
 });
+
+adminApp.get("/secret", (req,res) => {
+  res.send("SUCCESS");
+})
 
 app.get("/calc", (req,res) => {
   let query = req.url;

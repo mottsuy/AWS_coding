@@ -60,7 +60,7 @@ app.get("/stocker", async (req, res) => {
   if( priceStr && numCheck(priceStr) ) {
     price = parseInt(priceStr, 10);
     res.end();
-  } else if(priceStr && !numCheck(pricStr)){
+  } else if(priceStr && !numCheck(priceStr)){
     price = 0;
     return res.send("ERROR");
   }

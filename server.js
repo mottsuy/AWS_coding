@@ -36,22 +36,29 @@ app.get("/calc", (req,res) => {
   }
 });
 
-app.get("/stocker", (req, res) => {
+app.get("/stocker", (req, res, next) => {
   const func = req.query.function;
   const name = req.query.name;
   let amount;
   let price;
   const amountStr = req.query.amount;
   const priceStr = req.query.price;
-  if( amountStr && amountStr.match(/[^0-9\.]/g) === null ) {
+  const numCheck= (str) => {
+    var pattern = /^[0-9]+$/;
+    return pattern.test(str);
+  }
+
+  if( amountStr && numCheck(amountStr)) {
      amount = parseInt(amountStr, 10);
-  } else if(amountStr && amountStr.match(/[^0-9\.]/g) !== null) {
+     res.end();
+  } else if(amountStr && !numCheck(amountStr)) {
     amount = 0;
     return res.send("ERROR");
   }
-  if( priceStr && priceStr.match(/[^0-9\.]/g) === null ) {
+  if( priceStr && numCheck(priceStr) ) {
     price = parseInt(priceStr, 10);
-  } else if(priceStr && priceStr.match(/[^0-9\.]/g) !== null){
+    res.end();
+  } else if(priceStr && !numCheck(pricStr)){
     price = 0;
     return res.send("ERROR");
   }
@@ -59,7 +66,7 @@ app.get("/stocker", (req, res) => {
   if(func === "addstock") {
     Stocker.find({name: name}, (err, docs) => {
       if(err) {
-        console.log(err.message);
+        console.log(err);
       } else {
         if(docs.length === 0 ) {
           Stocker.create({
@@ -67,31 +74,31 @@ app.get("/stocker", (req, res) => {
             amount,
             price: 0,
           })
+          next();
         } else if (docs.length !== 0) {
-          console.log(docs[0].amount)
           const addAmount = docs[0].amount + amount;
-          console.log(addAmount);
           Stocker.updateOne({name: docs[0].name}, {
             amount: addAmount,
           },
           (err) => {
             if (err) console.log(err);
           })
+          res.end();
         }
       }
     })
   } else if (func === "checkstock" && name) {
     Stocker.find({name: name}, (err, docs) => {
       if(err) {
-        console.log(err.message);
+        console.log(err);
       } else {
-        res.send(`${docs[0].name}: ${String(docs[0].amount)}`);
+        res.send(`${String(docs[0].name)}: ${String(docs[0].amount)}`);
       }
     })
   } else if (func === "checkstock" && !name) {
     Stocker.find({}, (err, docs) => {
       if(err) {
-        console.log(err.message);
+        console.log(err);
       } else {
         let str = "";
         docs.sort(function(a, b) {
@@ -108,7 +115,7 @@ app.get("/stocker", (req, res) => {
   } else if (func === "sell" && name) {
     Stocker.find({name: name}, (err, docs) => {
       if(err) {
-        console.log(err.message);
+        console.log(err);
       } else {
         if(price && !amount) {
           const baseAmount = docs[0].amount;
@@ -123,8 +130,9 @@ app.get("/stocker", (req, res) => {
             },(err) => {
               if (err) console.log(err);
             })
+            res.end();
           } else {
-            res.send("ERROR");
+            return res.send("ERROR");
           }
         } else if (price && amount) {
           const baseAmount = docs[0].amount;
@@ -139,11 +147,26 @@ app.get("/stocker", (req, res) => {
             },(err) => {
               if (err) console.log(err);
             })
+            res.end();
           } else {
-              res.send("ERROR");
+             return res.send("ERROR");
+          }
+        } else if (!price && amount) {
+          const baseAmount = docs[0].amount;
+          const subAmount = baseAmount - amount;
+          if(subAmount >= 0) {
+            Stocker.updateOne({name: name}, {
+              amount: subAmount,
+            }, (err) => {
+              if (err) console.log(err);
+            })
+            res.end();
+          } else {
+            return res.send("ERROR");
           }
         }
-      }
+      } 
+
     });
   } else if (func === "checksales") {
     Stocker.find({},(err, docs) => {
@@ -164,6 +187,7 @@ app.get("/stocker", (req, res) => {
         console.log(err.message);
       }
     })
+    res.send("");
   }
 })
 

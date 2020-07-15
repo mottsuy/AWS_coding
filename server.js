@@ -37,7 +37,7 @@ app.get("/calc", (req,res) => {
   }
 });
 
-app.get("/stocker", async (req, res) => {
+app.get("/stocker",  (req, res) => {
   const func = req.query.function;
   const name = req.query.name;
   let amount;

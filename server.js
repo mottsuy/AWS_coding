@@ -183,7 +183,7 @@ app.get("/stocker", async (req, res) => {
           console.log(item.price);
           totalSeles += item.price;
         });
-        res.send(String(totalSeles));
+        res.send(`sales: ${String(totalSeles)}`);
       }
   });
   } else if (func === "deleteall") {

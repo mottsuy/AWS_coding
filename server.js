@@ -94,8 +94,11 @@ app.get("/stocker",  (req, res) => {
       if(err) {
       return  console.log(err);
       } else {
+        if (docs.length === 0){
+          res.end();
+        }else {
         res.send(`${String(docs[0].name)}: ${String(docs[0].amount)}`);
-      }
+      }}
     })
   } else if (func === "checkstock" && !name) {
     Stocker.find({}, (err, docs) => {

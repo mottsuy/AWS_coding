@@ -5,6 +5,7 @@ const basicAuth = require('basic-auth-connect');
 const mongodb = require('mongodb');
 const mongoose = require('mongoose');
 const Stocker = require('./model');
+const e = require("express");
 
 mongoose.connect(
   "mongodb://localhost:27017/stocker_db",
@@ -36,7 +37,7 @@ app.get("/calc", (req,res) => {
   }
 });
 
-app.get("/stocker", (req, res, next) => {
+app.get("/stocker", async (req, res) => {
   const func = req.query.function;
   const name = req.query.name;
   let amount;
@@ -47,6 +48,7 @@ app.get("/stocker", (req, res, next) => {
     var pattern = /^[0-9]+$/;
     return pattern.test(str);
   }
+
 
   if( amountStr && numCheck(amountStr)) {
      amount = parseInt(amountStr, 10);
@@ -74,7 +76,7 @@ app.get("/stocker", (req, res, next) => {
             amount,
             price: 0,
           })
-          next();
+          res.end();
         } else if (docs.length !== 0) {
           const addAmount = docs[0].amount + amount;
           Stocker.updateOne({name: docs[0].name}, {
@@ -90,7 +92,7 @@ app.get("/stocker", (req, res, next) => {
   } else if (func === "checkstock" && name) {
     Stocker.find({name: name}, (err, docs) => {
       if(err) {
-        console.log(err);
+      return  console.log(err);
       } else {
         res.send(`${String(docs[0].name)}: ${String(docs[0].amount)}`);
       }
@@ -98,7 +100,7 @@ app.get("/stocker", (req, res, next) => {
   } else if (func === "checkstock" && !name) {
     Stocker.find({}, (err, docs) => {
       if(err) {
-        console.log(err);
+        return console.log(err);
       } else {
         let str = "";
         docs.sort(function(a, b) {
@@ -115,9 +117,12 @@ app.get("/stocker", (req, res, next) => {
   } else if (func === "sell" && name) {
     Stocker.find({name: name}, (err, docs) => {
       if(err) {
-        console.log(err);
+        return console.log(err);
       } else {
-        if(price && !amount) {
+        if (docs.length === 0){
+          res.end();
+        }
+        if (docs.length !== 0 && price && !amount) {
           const baseAmount = docs[0].amount;
           const subAmount = baseAmount - 1;
           const basePrice = docs[0].price;
@@ -134,7 +139,7 @@ app.get("/stocker", (req, res, next) => {
           } else {
             return res.send("ERROR");
           }
-        } else if (price && amount) {
+        } else if (docs.length !== 0 && price && amount) {
           const baseAmount = docs[0].amount;
           const subAmount = baseAmount - amount;
           const basePrice = docs[0].price;
@@ -151,7 +156,7 @@ app.get("/stocker", (req, res, next) => {
           } else {
              return res.send("ERROR");
           }
-        } else if (!price && amount) {
+        } else if (docs.length !== 0 && !price && amount) {
           const baseAmount = docs[0].amount;
           const subAmount = baseAmount - amount;
           if(subAmount >= 0) {
@@ -164,7 +169,7 @@ app.get("/stocker", (req, res, next) => {
           } else {
             return res.send("ERROR");
           }
-        }
+        } 
       } 
 
     });
@@ -187,7 +192,7 @@ app.get("/stocker", (req, res, next) => {
         console.log(err.message);
       }
     })
-    res.send("");
+  return res.end();
   }
 })
 

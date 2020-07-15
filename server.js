@@ -1,18 +1,18 @@
 const port = 8080;
 const express = require("express");
 const app = express();
+const basicAuth = require('basic-auth-connect');
 
+app.all('/secret', basicAuth(function(user, password) {
+  return user === 'amazon' && password === 'candidate';
+}));
 
-var basicAuth = require('basic-auth-connect');
-var adminApp  = express.Router();
-
-adminApp.use(basicAuth('amazon', 'candidate'));
 
 app.get("/", (req,res) => {
     res.send("AMAZON")
 });
 
-adminApp.get("/secret", (req,res) => {
+app.get("/secret", (req,res) => {
   res.send("SUCCESS");
 })
 
@@ -21,7 +21,6 @@ app.get("/calc", (req,res) => {
   const queryIndex = query.indexOf('?');
   query = query.slice(queryIndex + 1);
   const checker = query.match(/[^0-9\+\-\*\/~\(\)\.]/g)
-  console.log(checker);
   if(checker === null) {
     const answer = eval(query);
     res.send(String(answer) + "\n");

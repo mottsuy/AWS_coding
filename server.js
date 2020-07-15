@@ -55,14 +55,16 @@ app.get("/stocker",  (req, res) => {
      res.end();
   } else if(amountStr && !numCheck(amountStr)) {
     amount = 0;
-    return res.send("ERROR");
+    res.write("ERROR");
+    res.end();
   }
   if( priceStr && numCheck(priceStr) ) {
     price = parseInt(priceStr, 10);
     res.end();
   } else if(priceStr && !numCheck(priceStr)){
     price = 0;
-    return res.send("ERROR");
+    res.write("ERROR");
+    res.end();
   }
 
   if(func === "addstock") {
